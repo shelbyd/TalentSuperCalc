@@ -9,4 +9,5 @@
 TaintLess.xml
 libs\embeds.xml
 
+treeState.lua
 core.lua

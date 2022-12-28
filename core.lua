@@ -22,8 +22,8 @@ function Main:OnInitialize()
         self:SetupHook();
     end);
 
-    Main:RegisterEvent("TRAIT_TREE_CHANGED", self.OnTraitTreeChanged)
-    Main:RegisterEvent("TRAIT_NODE_CHANGED", self.OnTraitNodeChanged)
+    Main:RegisterEvent("TRAIT_TREE_CHANGED", self.OnTraitTreeChanged, self)
+    Main:RegisterEvent("TRAIT_NODE_CHANGED", self.OnTraitNodeChanged, self)
 end
 
 function Main:IsTalentTreeViewerEnabled()
@@ -113,11 +113,16 @@ function Main:NodeState(nodeId)
     return 'explicitly_selected';
 end
 
-function Main:OnTraitTreeChanged(treeId)
-    DevTools_Dump(treeId)
+function Main:OnTraitTreeChanged(event, treeId)
+    self.treeState = self:BuildStateFromTree(treeId)
 end
 
-function Main:OnTraitNodeChanged(nodeId)
+function Main:BuildStateFromTree(treeId)
+    local result = TSC.TreeState:New();
+    return result;
+end
+
+function Main:OnTraitNodeChanged(event, nodeId)
     print("OnTraitNodeChanged " .. nodeId)
     local nodeInfo = C_Traits.GetNodeInfo(C_ClassTalents.GetActiveConfigID(), nodeId);
     DevTools_Dump({
