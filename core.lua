@@ -56,7 +56,7 @@ function Main:UpdateColors()
 end
 
 local function UpdateNonStateVisualsHook(button)
-    local nodeState = Main:NodeState(button.nodeID);
+    local nodeState = Main.treeState:GetState(button.nodeID);
 
     local color = TRANSPARENT;
     local shown = true;
@@ -94,32 +94,29 @@ end
 
 -- State things
 
-function Main:NodeState(nodeId)
-    -- https://wowpedia.fandom.com/wiki/API_C_Traits.GetNodeInfo
-    local nodeInfo = C_Traits.GetNodeInfo(C_ClassTalents.GetActiveConfigID(), nodeId);
-
-    local ranks = nodeInfo.activeRank;
-    if ranks == 0 then
-        return 'explicitly_rejected';
-    end
-
-    for _, edge in ipairs(nodeInfo.visibleEdges) do
-        local otherNodeState = self:NodeState(edge.targetNode);
-        if otherNodeState == 'inferred' or otherNodeState == 'explicitly_selected' then
-            return 'inferred'
-        end
-    end
-
-    return 'explicitly_selected';
-end
-
 function Main:OnTraitTreeChanged(event, treeId)
     self.treeState = self:BuildStateFromTree(treeId)
 end
 
 function Main:BuildStateFromTree(treeId)
-    local result = TSC.TreeState:New();
-    return result;
+    local builder = TSC.TreeState:Builder();
+
+    for _, nodeId in ipairs(C_Traits.GetTreeNodes(treeId)) do
+        local nodeInfo = C_Traits.GetNodeInfo(C_ClassTalents.GetActiveConfigID(), nodeId);
+        builder:CurrentRanks(nodeId, nodeInfo.activeRank);
+        builder:MaxRanks(nodeId, nodeInfo.maxRanks);
+
+        for _, edge in ipairs(nodeInfo.visibleEdges) do
+            local SufficentForAvailability = 2;
+            if edge.type ~= SufficentForAvailability then
+                error("Unhandled edge type " .. edge.type);
+            end
+
+            builder:AddOutgoing(nodeId, edge.targetNode);
+        end
+    end
+
+    return builder:Build();
 end
 
 function Main:OnTraitNodeChanged(event, nodeId)

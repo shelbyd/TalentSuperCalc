@@ -5,6 +5,7 @@
 ## Version: @project-version@
 ## X-Curse-Project-ID: TODO(shelbyd)
 ## SavedVariables: TalentSuperCalcDB
+## OptionalDeps: WoWUnit
 
 TaintLess.xml
 libs\embeds.xml
