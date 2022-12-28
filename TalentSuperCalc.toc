@@ -1,0 +1,12 @@
+## Interface: @toc-version-retail@
+## Title: Talent Super Calc
+## Author: Shelby Doolittle
+## Notes: Only select the nodes you need
+## Version: @project-version@
+## X-Curse-Project-ID: TODO(shelbyd)
+## SavedVariables: TalentSuperCalcDB
+
+TaintLess.xml
+libs\embeds.xml
+
+core.lua
