@@ -56,15 +56,15 @@ function Main:UpdateColors()
 end
 
 local function UpdateNonStateVisualsHook(button)
-    local nodeState = Main.treeState:GetState(button.nodeID);
+    local nodeState = Main.selections:GetState(button.nodeID) or Main.treeState:GetState(button.nodeID);
 
     local color = TRANSPARENT;
     local shown = true;
     if nodeState == 'floating' then
         color = YELLOW;
-    elseif nodeState == 'explicitly_selected' then
+    elseif nodeState == 'selected' then
         color = GREEN;
-    elseif nodeState == 'explicitly_rejected' then
+    elseif nodeState == 'rejected' then
         color = RED;
     elseif nodeState == 'inferred' then
         shown = false;
@@ -95,16 +95,17 @@ end
 -- State things
 
 function Main:OnTraitTreeChanged(event, treeId)
-    self.treeState = self:BuildStateFromTree(treeId)
+    self.treeState = self:BuildStateFromTree(treeId);
+    self.selections = TSC.Selections:InferFromTree(self.treeState);
 end
 
 function Main:BuildStateFromTree(treeId)
-    local builder = TSC.TreeState:Builder();
+    local tree = TSC.Tree:New();
 
     for _, nodeId in ipairs(C_Traits.GetTreeNodes(treeId)) do
         local nodeInfo = C_Traits.GetNodeInfo(C_ClassTalents.GetActiveConfigID(), nodeId);
-        builder:CurrentRanks(nodeId, nodeInfo.activeRank);
-        builder:MaxRanks(nodeId, nodeInfo.maxRanks);
+        tree:CurrentRanks(nodeId, nodeInfo.activeRank);
+        tree:MaxRanks(nodeId, nodeInfo.maxRanks);
 
         for _, edge in ipairs(nodeInfo.visibleEdges) do
             local SufficentForAvailability = 2;
@@ -112,17 +113,13 @@ function Main:BuildStateFromTree(treeId)
                 error("Unhandled edge type " .. edge.type);
             end
 
-            builder:AddOutgoing(nodeId, edge.targetNode);
+            tree:AddOutgoing(nodeId, edge.targetNode);
         end
     end
 
-    return builder:Build();
+    return tree;
 end
 
 function Main:OnTraitNodeChanged(event, nodeId)
-    print("OnTraitNodeChanged " .. nodeId)
     local nodeInfo = C_Traits.GetNodeInfo(C_ClassTalents.GetActiveConfigID(), nodeId);
-    DevTools_Dump({
-        isAvailable = nodeInfo.isAvailable,
-    })
 end
